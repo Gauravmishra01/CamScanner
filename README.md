@@ -3,6 +3,8 @@
 CamScanner is a full-stack web application that mimics the functionality of CamScanner. It allows users to upload document images, automatically detects and crops the document using intelligent image processing algorithms, and securely saves it.
 
 ---
+**Note**: The backend is deployed on Render, which means it may take 40-60 seconds to become active. Please wait patiently while the server spins up.
+---
 
 ## 📄 Table of Contents
 
@@ -120,7 +122,7 @@ The client will run on [http://localhost:5173](http://localhost:5173).
 
 **Crucial**: For `FIREBASE_SERVICE_ACCOUNT`, paste the minified content of your `serviceAccountKey.json`.
 
-**Note**: The backend is deployed on Render, which means it may take 40-60 seconds to become active. Please wait patiently while the server spins up.
+
 
 ### Frontend (Vercel)
 1. Import the repo into Vercel.

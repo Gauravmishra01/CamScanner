@@ -1,6 +1,6 @@
-# OpenScan - Intelligent Document Scanner
+# CamScanner - Intelligent Document Scanner
 
-OpenScan is a full-stack web application that mimics the functionality of CamScanner. It allows users to upload document images, automatically detects and crops the document using intelligent image processing algorithms, and stores them securely in the cloud.
+CamScanner is a full-stack web application that mimics the functionality of CamScanner. It allows users to upload document images, automatically detects and crops the document using intelligent image processing algorithms, and stores them securely in the cloud.
 
 ---
 
@@ -81,8 +81,8 @@ VITE_FIREBASE_APP_ID=your_app_id
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/openscan-project.git
-cd openscan-project
+git clone https://github.com/YOUR_USERNAME/CamScanner-project.git
+cd CamScanner-project
 ```
 
 ### 2. Backend Setup
@@ -134,7 +134,7 @@ The client will run on [http://localhost:5173](http://localhost:5173).
 ## 📂 Project Structure
 
 ```plaintext
-openscan-project/
+CamScanner-project/
 ├── client/                 # React Frontend
 │   ├── src/
 │   │   ├── components/     # Dashboard, Login, etc.

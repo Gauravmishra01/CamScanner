@@ -1,6 +1,11 @@
+Here is the corrected and formatted README.md file:
+
+```markdown name=README.md
 # OpenScan - Intelligent Document Scanner
 
-OpenScan is a full-stack web application that mimics the functionality of CamScanner. It allows users to upload document images, automatically detects and crops the document using intelligent image processing algorithms, and stores them securely in the cloud.
+OpenScan is a full-stack web application that mimics the functionality of CamScanner. It allows users to upload document images, automatically detects and crops the document using intelligent image processing algorithms, and provides a clean and enhanced output.
+
+---
 
 ## 🚀 Features
 
@@ -12,19 +17,23 @@ OpenScan is a full-stack web application that mimics the functionality of CamSca
 * **Drag & Drop Interface:** Easy-to-use frontend built with React and Tailwind CSS.
 * **Responsive Design:** Works on desktop and mobile.
 
+---
+
 ## 🛠️ Tech Stack
 
-**Frontend:**
+### **Frontend:**
 * React (Vite)
 * Tailwind CSS
 * Firebase Auth (Client SDK)
 
-**Backend:**
+### **Backend:**
 * Node.js & Express
 * Jimp (Image Processing)
 * Multer (File Uploads)
 * Firebase Admin SDK (Firestore Database)
 * Cloudinary SDK (Image Storage)
+
+---
 
 ## ⚙️ Environment Variables
 
@@ -40,66 +49,81 @@ CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 
 # For Local Development (Optional if using Env Var below)
-# Place your serviceAccountKey.json in server/config/
-2. Client (client/.env.local)
-Create a .env.local file in the client folder with your Firebase Config:
+# FIREBASE_SERVICE_ACCOUNT (JSON file path)
+```
 
-Code snippet
+### 2. Client (`client/.env.local`)
+Create a `.env.local` file in the `client` folder with your Firebase Config:
+
+```env
 VITE_FIREBASE_API_KEY=your_api_key
 VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
 VITE_FIREBASE_PROJECT_ID=your_project_id
 VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
 VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 VITE_FIREBASE_APP_ID=your_app_id
-🖥️ Local Installation & Setup
-1. Clone the Repository
-Bash
-git clone [https://github.com/YOUR_USERNAME/openscan-project.git](https://github.com/YOUR_USERNAME/openscan-project.git)
+```
+
+---
+
+🖥️ **Local Installation & Setup**
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/YOUR_USERNAME/openscan-project.git
 cd openscan-project
-2. Backend Setup
-Bash
+```
+
+### 2. Backend Setup
+
+```bash
 cd server
 npm install
 npm start
-The server will run on http://localhost:5000
+```
 
-3. Frontend Setup
-Open a new terminal window:
+The server will run on [http://localhost:5000](http://localhost:5000)
 
-Bash
+### 3. Frontend Setup
+
+Open a new terminal window and run:
+
+```bash
 cd client
 npm install
 npm run dev
-The client will run on http://localhost:5173
+```
 
-🚀 Deployment Guide
-Backend (Render.com)
-Create a new Web Service on Render connected to this repo.
+The client will run on [http://localhost:5173](http://localhost:5173)
 
-Root Directory: server
+---
 
-Build Command: npm install
+🚀 **Deployment Guide**
 
-Start Command: node server.js
+### Backend (Render.com)
+1. Create a new Web Service on Render connected to this repo.
+2. Root Directory: `server`
+3. Build Command: `npm install`
+4. Start Command: `node server.js`
+5. Environment Variables: Add all keys from your `server/.env`.
 
-Environment Variables: Add all keys from your server/.env.
+**Crucial**: For `FIREBASE_SERVICE_ACCOUNT`, paste the minified content of your `serviceAccountKey.json`.
 
-Crucial: For FIREBASE_SERVICE_ACCOUNT, paste the minified content of your serviceAccountKey.json.
+### Frontend (Vercel)
+1. Import the repo into Vercel.
+2. Root Directory: `client`
+3. Build Command: `npm run build`
+4. Output Directory: `dist`
+5. Environment Variables: Add all keys from your `client/.env.local`.
 
-Frontend (Vercel)
-Import the repo into Vercel.
+**Update API URL**: In `client/src/components/Dashboard.jsx`, replace `http://localhost:5000` with your deployed Render URL.
 
-Root Directory: client
+---
 
-Build Command: npm run build
+📂 **Project Structure**
 
-Output Directory: dist
-
-Environment Variables: Add all keys from your client/.env.local.
-
-Update API URL: In client/src/components/Dashboard.jsx, replace http://localhost:5000 with your deployed Render URL.
-
-📂 Project Structure
+```plaintext
 openscan-project/
 ├── client/                 # React Frontend
 │   ├── src/
@@ -115,8 +139,19 @@ openscan-project/
 │   └── server.js           # Main Entry Point
 │
 └── README.md
-🤝 Contributing
+```
+
+---
+
+🤝 **Contributing**
+
 Contributions are welcome! Please fork the repository and submit a pull request.
 
-📄 License
+---
+
+📄 **License**
+
 This project is licensed under the MIT License.
+```
+
+This version ensures a well-organized, easy-to-read, and properly spaced format.

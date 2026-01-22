@@ -11,9 +11,12 @@ export default function Dashboard() {
 
   const fetchDocs = async () => {
     const token = await getToken();
-    const res = await axios.get("http://localhost:5000/api/gallery", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await axios.get(
+      "https://camscanner-g6uh.onrender.com/api/gallery",
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
     setDocs(res.data);
   };
 
@@ -32,7 +35,7 @@ export default function Dashboard() {
     try {
       const token = await getToken();
       const res = await axios.post(
-        "http://localhost:5000/api/upload",
+        "https://camscanner-g6uh.onrender.com/api/upload",
         formData,
         {
           headers: {

@@ -1,37 +1,47 @@
-Here is the corrected and formatted README.md file:
-
-```markdown name=README.md
 # OpenScan - Intelligent Document Scanner
 
-OpenScan is a full-stack web application that mimics the functionality of CamScanner. It allows users to upload document images, automatically detects and crops the document using intelligent image processing algorithms, and provides a clean and enhanced output.
+OpenScan is a full-stack web application that mimics the functionality of CamScanner. It allows users to upload document images, automatically detects and crops the document using intelligent image processing algorithms, and stores them securely in the cloud.
+
+---
+
+## 📄 Table of Contents
+
+- [Features](#-features)
+- [Tech Stack](#%EF%B8%8F-tech-stack)
+- [Environment Variables](#%EF%B8%8F-environment-variables)
+- [Local Installation & Setup](#-%EF%B8%8F-local-installation--setup)
+- [Deployment Guide](#-deployment-guide)
+- [Project Structure](#-project-structure)
+- [Contributing](#-contributing)
+- [License](#-license)
 
 ---
 
 ## 🚀 Features
 
-* **Smart Auto-Crop:** Automatically detects document edges and crops background noise using a custom edge-density and center-weighted algorithm.
-* **Image Processing:** Enhances image contrast and brightness for better readability.
-* **Secure Cloud Storage:** Stores original and processed images on Cloudinary.
-* **User Gallery:** Saves scan history per user using Firebase Firestore.
-* **Authentication:** Secure Login and Signup via Firebase Authentication.
-* **Drag & Drop Interface:** Easy-to-use frontend built with React and Tailwind CSS.
-* **Responsive Design:** Works on desktop and mobile.
+- **Smart Auto-Crop:** Automatically detects document edges and crops background noise using a custom edge-density and center-weighted algorithm.
+- **Image Processing:** Enhances image contrast and brightness for better readability.
+- **Secure Cloud Storage:** Stores original and processed images on Cloudinary.
+- **User Gallery:** Saves scan history per user using Firebase Firestore.
+- **Authentication:** Secure Login and Signup via Firebase Authentication.
+- **Drag & Drop Interface:** Easy-to-use frontend built with React and Tailwind CSS.
+- **Responsive Design:** Works on desktop and mobile.
 
 ---
 
 ## 🛠️ Tech Stack
 
 ### **Frontend:**
-* React (Vite)
-* Tailwind CSS
-* Firebase Auth (Client SDK)
+- React (Vite)
+- Tailwind CSS
+- Firebase Auth (Client SDK)
 
 ### **Backend:**
-* Node.js & Express
-* Jimp (Image Processing)
-* Multer (File Uploads)
-* Firebase Admin SDK (Firestore Database)
-* Cloudinary SDK (Image Storage)
+- Node.js & Express
+- Jimp (Image Processing)
+- Multer (File Uploads)
+- Firebase Admin SDK (Firestore Database)
+- Cloudinary SDK (Image Storage)
 
 ---
 
@@ -66,7 +76,7 @@ VITE_FIREBASE_APP_ID=your_app_id
 
 ---
 
-🖥️ **Local Installation & Setup**
+## 🖥️ Local Installation & Setup
 
 ### 1. Clone the Repository
 
@@ -83,7 +93,7 @@ npm install
 npm start
 ```
 
-The server will run on [http://localhost:5000](http://localhost:5000)
+The server will run on [http://localhost:5000](http://localhost:5000).
 
 ### 3. Frontend Setup
 
@@ -95,11 +105,11 @@ npm install
 npm run dev
 ```
 
-The client will run on [http://localhost:5173](http://localhost:5173)
+The client will run on [http://localhost:5173](http://localhost:5173).
 
 ---
 
-🚀 **Deployment Guide**
+## 🚀 Deployment Guide
 
 ### Backend (Render.com)
 1. Create a new Web Service on Render connected to this repo.
@@ -121,7 +131,7 @@ The client will run on [http://localhost:5173](http://localhost:5173)
 
 ---
 
-📂 **Project Structure**
+## 📂 Project Structure
 
 ```plaintext
 openscan-project/
@@ -143,15 +153,12 @@ openscan-project/
 
 ---
 
-🤝 **Contributing**
+## 🤝 Contributing
 
 Contributions are welcome! Please fork the repository and submit a pull request.
 
 ---
 
-📄 **License**
+## 📄 License
 
 This project is licensed under the MIT License.
-```
-
-This version ensures a well-organized, easy-to-read, and properly spaced format.

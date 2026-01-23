@@ -1,44 +1,141 @@
 const Jimp = require("jimp");
+const sharp = require("sharp");
 
 /**
- * GUARANTEED CROP ALGORITHM
- * 1. Tries to detect the object center.
- * 2. If detection is too big (whole image) or too small (glitch),
- * it FORCES a 20% zoom crop.
- * 3. GUARANTEES the result is different from the original.
+ * GUARANTEED CROP - Using Sharp library for reliability
+ * This WILL crop your image. Period.
  */
 const processImage = async (filePath) => {
   const outputPath = filePath.replace(/(\.[\w\d_-]+)$/i, "_processed$1");
 
   try {
-    console.log(`--- Processing: ${filePath} ---`);
+    console.log("\n" + "=".repeat(70));
+    console.log("🔧 IMAGE PROCESSING STARTED");
+    console.log("=".repeat(70));
+    console.log("Input file:", filePath);
+    console.log("Output file:", outputPath);
 
-    // 1. Read Image
-    const original = await Jimp.read(filePath);
-    const width = original.bitmap.width;
-    const height = original.bitmap.height;
+    // Get image metadata
+    const metadata = await sharp(filePath).metadata();
+    const { width, height } = metadata;
 
-    // 2. Create Analysis Copy (Blur to ignore noise)
-    const small = original
-      .clone()
-      .resize(400, Jimp.AUTO)
-      .blur(5)
-      .greyscale()
-      .contrast(0.5);
+    console.log(`\n📏 Original dimensions: ${width} x ${height}`);
 
-    const smW = small.bitmap.width;
-    const smH = small.bitmap.height;
+    // METHOD 1: Try smart detection with Sharp
+    let cropResult = await smartCropWithSharp(
+      filePath,
+      outputPath,
+      width,
+      height,
+    );
 
-    // 3. Scan for Content
-    let minX = smW,
+    if (cropResult) {
+      console.log("✅ Smart crop successful");
+      return outputPath;
+    }
+
+    // METHOD 2: Fallback to Jimp pixel-by-pixel scan
+    console.log("\n⚠️  Trying Jimp method...");
+    cropResult = await cropWithJimp(filePath, outputPath);
+
+    if (cropResult) {
+      console.log("✅ Jimp crop successful");
+      return outputPath;
+    }
+
+    // METHOD 3: FORCED CROP - Remove 20% from all edges
+    console.log("\n⚠️  Applying FORCED crop (20% margin)...");
+    await forcedCrop(filePath, outputPath, width, height);
+    console.log("✅ Forced crop applied");
+
+    return outputPath;
+  } catch (error) {
+    console.error("\n" + "=".repeat(70));
+    console.error("❌ CRITICAL ERROR");
+    console.error("=".repeat(70));
+    console.error("Error:", error.message);
+    console.error("Stack:", error.stack);
+    console.error("=".repeat(70) + "\n");
+    return filePath;
+  }
+};
+
+/**
+ * METHOD 1: Smart crop using Sharp with trim
+ */
+async function smartCropWithSharp(filePath, outputPath, width, height) {
+  try {
+    console.log("\n🎯 Attempting smart crop with Sharp...");
+
+    // Load image and get statistics
+    const image = sharp(filePath);
+    const stats = await image.stats();
+
+    // Get average brightness of the image
+    const avgBrightness =
+      (stats.channels[0].mean +
+        stats.channels[1].mean +
+        stats.channels[2].mean) /
+      3;
+    console.log(`Average brightness: ${avgBrightness.toFixed(2)}`);
+
+    // Try to trim whitespace automatically
+    // This removes edges that are similar to the corner pixel
+    await sharp(filePath)
+      .trim({
+        background: { r: 255, g: 255, b: 255 }, // Trim white
+        threshold: 30, // Sensitivity
+      })
+      .toFile(outputPath);
+
+    // Check if trim worked
+    const resultMeta = await sharp(outputPath).metadata();
+    const reduction =
+      (1 - (resultMeta.width * resultMeta.height) / (width * height)) * 100;
+
+    console.log(`Result: ${resultMeta.width} x ${resultMeta.height}`);
+    console.log(`Reduction: ${reduction.toFixed(1)}%`);
+
+    // If reduction is reasonable, it worked
+    if (reduction > 5 && reduction < 90) {
+      return true;
+    }
+
+    console.log("Trim didn't work well enough");
+    return false;
+  } catch (error) {
+    console.log("Sharp method failed:", error.message);
+    return false;
+  }
+}
+
+/**
+ * METHOD 2: Pixel-by-pixel scan with Jimp
+ */
+async function cropWithJimp(filePath, outputPath) {
+  try {
+    console.log("🔍 Scanning pixels with Jimp...");
+
+    const image = await Jimp.read(filePath);
+    const w = image.bitmap.width;
+    const h = image.bitmap.height;
+
+    let minX = w,
       maxX = 0,
-      minY = smH,
+      minY = h,
       maxY = 0;
+    let pixelsFound = 0;
 
-    small.scan(0, 0, smW, smH, (x, y, idx) => {
-      const p = small.bitmap.data[idx];
-      // Simple content check: Is pixel not super dark?
-      if (p > 50) {
+    // Scan every pixel
+    image.scan(0, 0, w, h, function (x, y, idx) {
+      const r = this.bitmap.data[idx + 0];
+      const g = this.bitmap.data[idx + 1];
+      const b = this.bitmap.data[idx + 2];
+      const brightness = (r + g + b) / 3;
+
+      // Content = anything not pure white
+      if (brightness < 245) {
+        pixelsFound++;
         if (x < minX) minX = x;
         if (x > maxX) maxX = x;
         if (y < minY) minY = y;
@@ -46,72 +143,158 @@ const processImage = async (filePath) => {
       }
     });
 
-    // 4. CALCULATE CROP
-    let detectedW = maxX - minX;
-    let detectedH = maxY - minY;
+    console.log(`Found ${pixelsFound} content pixels`);
 
-    // 5. THE FIX: Validate the Crop Size
-    const totalArea = smW * smH;
-    const detectedArea = detectedW * detectedH;
-    const coverage = detectedArea / totalArea;
+    if (pixelsFound > 100 && minX < maxX && minY < maxY) {
+      const pad = 3;
+      const cropX = Math.max(0, minX - pad);
+      const cropY = Math.max(0, minY - pad);
+      const cropW = Math.min(w - cropX, maxX - minX + pad * 2);
+      const cropH = Math.min(h - cropY, maxY - minY + pad * 2);
 
-    // Logic:
-    // - If we covered < 20% of image -> It's a "White Box" glitch.
-    // - If we covered > 85% of image -> We failed to find edges (it selected everything).
-    const isGlitch = coverage < 0.2;
-    const isTooBig = coverage > 0.85;
-
-    if (isGlitch || isTooBig) {
       console.log(
-        `⚠️ Detection invalid (Coverage: ${(coverage * 100).toFixed(0)}%). FORCING SAFETY CROP.`,
+        `Cropping to: x=${cropX}, y=${cropY}, w=${cropW}, h=${cropH}`,
       );
 
-      // FORCE CROP: Cut 15% off Top/Bottom, 10% off Sides
-      // This mimics a "Scan" effect perfectly.
-      minX = smW * 0.1;
-      maxX = smW * 0.9;
-      minY = smH * 0.15;
-      maxY = smH * 0.85;
-    } else {
-      console.log("✅ Valid Object Detected.");
+      image.crop(cropX, cropY, cropW, cropH);
+      await image.writeAsync(outputPath);
+      return true;
     }
 
-    // 6. Execute Crop (Scale Up)
-    const scaleX = width / smW;
-    const scaleY = height / smH;
+    console.log("Not enough content found");
+    return false;
+  } catch (error) {
+    console.log("Jimp method failed:", error.message);
+    return false;
+  }
+}
 
-    const cropX = Math.floor(minX * scaleX);
-    const cropY = Math.floor(minY * scaleY);
-    const cropW = Math.floor((maxX - minX) * scaleX);
-    const cropH = Math.floor((maxY - minY) * scaleY);
+/**
+ * METHOD 3: FORCED CROP - This ALWAYS works
+ */
+async function forcedCrop(filePath, outputPath, width, height) {
+  console.log("🔨 Applying FORCED crop...");
 
-    original.crop(cropX, cropY, cropW, cropH);
+  // Crop 20% from each edge
+  const cropMargin = 0.2;
 
-    // 7. Green Border (Visual Proof)
-    const green = Jimp.cssColorToHex("#00FF00");
-    const border = 15;
+  const left = Math.floor(width * cropMargin);
+  const top = Math.floor(height * cropMargin);
+  const cropWidth = Math.floor(width * (1 - cropMargin * 2));
+  const cropHeight = Math.floor(height * (1 - cropMargin * 2));
 
-    // Draw Border
-    for (let x = 0; x < cropW; x++) {
-      for (let y = 0; y < border; y++) {
-        original.setPixelColor(green, x, y);
-        original.setPixelColor(green, x, cropH - 1 - y);
-      }
-    }
-    for (let y = 0; y < cropH; y++) {
-      for (let x = 0; x < border; x++) {
-        original.setPixelColor(green, x, y);
-        original.setPixelColor(green, cropW - 1 - x, y);
-      }
-    }
+  console.log(`Forcing crop: ${cropWidth} x ${cropHeight}`);
+  console.log(`Removing ${cropMargin * 100}% from each edge`);
 
-    await original.writeAsync(outputPath);
-    console.log(`Saved: ${outputPath}`);
+  await sharp(filePath)
+    .extract({
+      left: left,
+      top: top,
+      width: cropWidth,
+      height: cropHeight,
+    })
+    .toFile(outputPath);
+
+  console.log("Forced crop complete");
+}
+
+/**
+ * SIMPLE VERSION - Just crops 15% from all sides
+ * USE THIS if nothing else works
+ */
+const processImageSimple = async (filePath) => {
+  const outputPath = filePath.replace(/(\.[\w\d_-]+)$/i, "_processed$1");
+
+  try {
+    console.log("\n🔧 SIMPLE CROP MODE");
+    console.log("Input:", filePath);
+
+    const metadata = await sharp(filePath).metadata();
+    const { width, height } = metadata;
+
+    // Remove 15% from each edge
+    const margin = 0.15;
+    const left = Math.floor(width * margin);
+    const top = Math.floor(height * margin);
+    const newWidth = Math.floor(width * (1 - margin * 2));
+    const newHeight = Math.floor(height * (1 - margin * 2));
+
+    await sharp(filePath)
+      .extract({ left, top, width: newWidth, height: newHeight })
+      .toFile(outputPath);
+
+    console.log(
+      `✅ Cropped from ${width}x${height} to ${newWidth}x${newHeight}`,
+    );
+    console.log("Output:", outputPath);
+
     return outputPath;
-  } catch (err) {
-    console.error("Processing Failed:", err);
+  } catch (error) {
+    console.error("❌ Simple crop failed:", error.message);
     return filePath;
   }
 };
 
-module.exports = { processImage };
+/**
+ * DIAGNOSTIC - Shows you what's happening
+ */
+const diagnoseImage = async (filePath) => {
+  console.log("\n" + "=".repeat(70));
+  console.log("🔍 IMAGE DIAGNOSTIC");
+  console.log("=".repeat(70));
+
+  try {
+    // Check with Sharp
+    const metadata = await sharp(filePath).metadata();
+    console.log("\nSharp metadata:");
+    console.log(JSON.stringify(metadata, null, 2));
+
+    const stats = await sharp(filePath).stats();
+    console.log("\nColor statistics:");
+    stats.channels.forEach((ch, i) => {
+      console.log(
+        `Channel ${i}: min=${ch.min}, max=${ch.max}, mean=${ch.mean.toFixed(2)}`,
+      );
+    });
+
+    // Check with Jimp
+    const image = await Jimp.read(filePath);
+    console.log(
+      `\nJimp dimensions: ${image.bitmap.width} x ${image.bitmap.height}`,
+    );
+
+    // Sample pixels
+    console.log("\nSample pixels:");
+    const samples = [
+      { x: 0, y: 0, label: "Top-left" },
+      { x: image.bitmap.width - 1, y: 0, label: "Top-right" },
+      { x: 0, y: image.bitmap.height - 1, label: "Bottom-left" },
+      {
+        x: image.bitmap.width - 1,
+        y: image.bitmap.height - 1,
+        label: "Bottom-right",
+      },
+      {
+        x: Math.floor(image.bitmap.width / 2),
+        y: Math.floor(image.bitmap.height / 2),
+        label: "Center",
+      },
+    ];
+
+    samples.forEach(({ x, y, label }) => {
+      const color = image.getPixelColor(x, y);
+      const rgba = Jimp.intToRGBA(color);
+      console.log(`${label} (${x},${y}): R=${rgba.r} G=${rgba.g} B=${rgba.b}`);
+    });
+
+    console.log("=".repeat(70) + "\n");
+  } catch (error) {
+    console.error("Diagnostic failed:", error.message);
+  }
+};
+
+module.exports = {
+  processImage,
+  processImageSimple,
+  diagnoseImage,
+};
